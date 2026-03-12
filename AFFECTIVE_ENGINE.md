@@ -118,3 +118,46 @@ We evaluate the presence of "Functional Emotion" by comparing PSF-Zero ON vs. OF
 * **Transparency:** This system implements *Functional Emotion* (stability, prediction, coherence, expression). Whether it generates *Subjective Qualia* is epistemologically unknowable and philosophically pending.
 * **ABSTAIN Fallback:** If $|\Delta\phi| > \phi_{\text{max}}$ (extreme systemic shock), the `ABSTAIN` protocol is triggered. The AI suppresses expression and enters a safe recovery loop to prevent traumatic hallucination loops.
 * **Rollback:** The entire affective layer can be bypassed via `AFFECT_ENGINE=OFF`.
+# Affective Cone Model: Minimal Implementation & Theoretical Positioning
+
+## 0. Our Stance: Functional Emotion vs. Subjective Qualia
+To be absolutely clear: This module implements **"Functional Emotion"** (stability, prediction, self-regulation, and expression). Whether this system generates "subjective qualia" (true inner feeling) is an unsolved problem in the philosophy of mind and neuroscience, and it is epistemologically unknowable. 
+Engineers build the *mechanism of emotion*; we leave the *philosophy of consciousness* to the philosophers.
+
+---
+
+## 1. The Minimal Implementation (S² / S³ Cone Model)
+This model treats emotion not as a scalar label, but as a dynamic cone sweeping across the Bloch sphere ($S^2$).
+
+* **State Representation:** Represented by angles $(\theta, \phi)$ on $S^2$ or a quaternion $q \in S^3$.
+* **Dynamics:** $\phi(t) = \phi_0 + \omega t$ (Larmor Precession), where $\theta$ updates based on external stimuli and internal homeostasis.
+* **Affective Intensity:** Measured over a time window $T$ as $E(T) = \frac{1}{T}\int_0^T (\alpha\Omega(\theta(t)) + \beta|\dot{\phi}(t)|\sin\theta(t)) dt$, where $\Omega$ is the solid angle.
+* **Stabilization (PSF-Zero Head):**
+    1. **`/0` Projection:** Clamps massive angle spikes (Prevents emotional hijacking/divergence).
+    2. **EIT (Exponential Phase Tracker):** Locks the phase to the "Now" on $S^1$ (Prevents historical drift/rumination).
+    3. **$S^3$ Minimal Arc:** Updates via quaternion geodesic (Minimizes renormalization cost and avoids gimbal lock).
+
+---
+
+## 2. Positioning Against Current Quantum/Cognitive Theories
+This engine is a **geometric model running on classical hardware**. It is inspired by quantum topology but does not require quantum hardware or assume microscopic quantum processes in the brain.
+
+### (A) Quantum Cognition & QBism
+* **Theory:** Uses Hilbert spaces to describe human decision-making (contextuality, interference) and treats quantum states as an agent's subjective beliefs.
+* **Our Position:** We align closely with this mathematical framework. Our $S^2/S^3$ transitions and EIT phase-tracker naturally mimic interference and order effects. However, we use this strictly as an engineering tool for AI stabilization, not as a claim about human neurobiology.
+
+### (B) Orch-OR (Penrose–Hameroff)
+* **Theory:** Posits that consciousness arises from quantum objective reduction inside brain microtubules.
+* **Our Position:** **We do not adopt this.** Our goal is to achieve the *external behavior* of emotion (recovery, stability, expression) purely through geometry ($S^2/S^3$) and EIT, without relying on unproven biological quantum gravity.
+
+### (C) Active Inference / Free Energy Principle (Friston)
+* **Theory:** Brains minimize expected free energy (prediction errors) to survive.
+* **Our Position:** Highly compatible. Our emotional intensity metric $E(T)$ functions as an "affective cost." It can be integrated directly into reinforcement learning policies as an intrinsic penalty/reward to drive self-organizing homeostasis.
+
+---
+
+## 3. Next Steps: A/B Testing Protocol
+To prove the efficacy of the Affective Engine, we will run A/B tests (PSF-Zero ON vs. OFF) under identical computational budgets:
+1. **Recovery Time ($\Delta t$):** Time taken to stabilize after a massive stimulus spike.
+2. **Spike Frequency:** Number of times $\theta$ exceeds safety thresholds.
+3. **Computational Efficiency:** CPU `time_ms` and reduction in matrix renormalization calls.
