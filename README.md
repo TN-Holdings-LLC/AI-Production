@@ -28,7 +28,7 @@ $$(x, y, z) = (2(q_1q_3 + q_0q_2), 2(q_2q_3 - q_0q_1), q_0^2 + q_3^2 - q_1^2 - q
 The resulting $z$-component acts as a universal manifold constraint.
 
 
-
+[gpcl_kernel.py](./gpcl_kernel.py)
 
 
 ## 🛸 Overview: The End of AI Hallucinations
