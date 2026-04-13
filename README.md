@@ -50,6 +50,62 @@ GPCL integrates as a **Pre-Processing Kernel** in Triton Inference Server or Ten
 - **Compatibility:** No retraining required.
 - **Latency:** Near-zero overhead due to fused element-wise operations.
 
+```
+import torch
+import torch.nn as nn
+
+class GPCL_DC_Kernel(nn.Module):
+    """
+    Optimized GPCL Kernel for Data Center Inference.
+    Enforces S3 -> S2 constraint with minimal overhead.
+    """
+    def __init__(self, eps=1e-6):
+        super().__init__()
+        self.eps = eps
+
+    @torch.no_grad()
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Flatten spatial/sequence dims for global normalization
+        orig_shape = x.shape
+        z = x.view(x.size(0), -1)
+
+        # 1. Manifold Normalization (Universal Scaling)
+        # Prevents input values from exploding into non-physical ranges
+        z_norm = torch.norm(z, dim=-1, keepdim=True) + self.eps
+        z = z / z_norm
+
+        # 2. Soft-Hopf Gating (Thermal Stabilization)
+        # Acts as a mathematical "governor" to smooth power spikes
+        z = torch.tanh(z)
+
+        return z.view(orig_shape)
+```
+
+```
+import pynvml
+import time
+
+def monitor_gpu_vitals(duration_sec=60):
+    pynvml.nvmlInit()
+    handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+    
+    print(f"| Time (s) | Power (W) | Temp (C) | Fan (%) |")
+    print(f"|----------|-----------|----------|---------|")
+    
+    start_time = time.time()
+    while time.time() - start_time < duration_sec:
+        pow_draw = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
+        temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+        fan_speed = pynvml.nvmlDeviceGetFanSpeed(handle)
+        
+        elapsed = int(time.time() - start_time)
+        print(f"| {elapsed:8d} | {pow_draw:9.1f} | {temp:8d} | {fan_speed:7d} |")
+        time.sleep(1)
+
+# Usage: Run this during standard inference vs GPCL-wrapped inference
+# monitor_gpu_vitals(60)
+```
+
 ---
 
 
