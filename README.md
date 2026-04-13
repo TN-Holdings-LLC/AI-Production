@@ -1,5 +1,7 @@
 # AI-Production: Love-OS Central Foundry
 
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![System Status](https://img.shields.io/badge/System-Operational-success)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Love_OS_RAG-blue)]()
 [![Paradigm](https://img.shields.io/badge/Paradigm-Zero_Time_Materialization-purple)]()
