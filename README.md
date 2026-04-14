@@ -29,6 +29,7 @@ The kernel lifts input coordinates to a unit quaternion $q \in S^3$ and applies 
 $$(x, y, z) = (2(q_1q_3 + q_0q_2), 2(q_2q_3 - q_0q_1), q_0^2 + q_3^2 - q_1^2 - q_2^2)$$
 The resulting $z$-component acts as a universal manifold constraint.
 
+![11](./11.png)
 
 [gpcl_kernel.py](./gpcl_kernel.py)
 
