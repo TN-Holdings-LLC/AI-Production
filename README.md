@@ -130,6 +130,7 @@ print(output.shape)
 
 [ ] Academic paper formalization.
 
+![5](./5.png)
 
 ---
 
