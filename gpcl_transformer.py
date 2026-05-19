@@ -1,270 +1,131 @@
 import torch
-
 import torch.nn as nn
+import torch.nn.functional as F
 
 # =========================================================
-
-# 🔷 PSF Core: Geometric Projection (Stabilized)
-
+# R0 Geometric Preconditioner (Core)
 # =========================================================
+class R0_GPCLayer(nn.Module):
+    """
+    R0 Geometric Preconditioner — Final Production Version
 
-def psf_projection(X: torch.Tensor) -> torch.Tensor:
+    This layer embodies the physical principle of Love-OS:
+    "R → 0" (Zero Resistance / Superconductivity)
 
+    It softly enforces geometric stability while preserving features,
+    exactly like the "じわーっと波" experienced in 10 years of practice.
     """
 
-    Geometric projection onto a constrained manifold (The PSF core).
-
-    This physically enforces deterministic structural validity by 
-
-    projecting the matrix onto the closest stable unitary-like manifold.
-
-    
-
-    Args:
-
-        X (torch.Tensor): Input attention matrix.
-
-    Returns:
-
-        torch.Tensor: Geometrically projected, noise-free matrix.
-
-    """
-
-    # Batched Singular Value Decomposition (SVD)
-
-    U, _, V = torch.svd(X)
-
-    
-
-    # Reconstruct enforcing a stable, unitary-like geometric structure
-
-    X_proj = torch.matmul(U, V.transpose(-2, -1))
-
-    
-
-    return X_proj
-
-# =========================================================
-
-# 🔷 GPCL Attention (Geometric Projection Constraint Layer)
-
-# =========================================================
-
-class GPCLAttention(nn.Module):
-
-    def __init__(self, dim: int, threshold: float = 0.6):
-
+    def __init__(
+        self,
+        sigma: float = 0.78,      # /0 projection softness
+        lam: float = 0.092,       # EIT smoothing (じわーっと持続)
+        strength: float = 3.8,    # gating intensity
+        eps: float = 1e-8,
+    ):
         super().__init__()
+        self.sigma = sigma
+        self.lam = lam
+        self.strength = strength
+        self.eps = eps
+        self.register_buffer('zbar', None)   # EIT state
 
-        self.dim = dim
+    def _projective_clamp(self, x: torch.Tensor) -> torch.Tensor:
+        """ /0 Projection: Soft saturation to the North Pole """
+        norm = torch.norm(x, dim=-1, keepdim=True)
+        scale = torch.tanh(norm / self.sigma) / (norm + self.eps)
+        return x * scale
 
-        self.threshold = threshold
+    def _phase_proxy(self, x: torch.Tensor) -> torch.Tensor:
+        """ Minimal Hopf-style phase alignment (stable proxy) """
+        d = x.shape[-1] - (x.shape[-1] % 2)
+        if d == 0:
+            return torch.zeros_like(x[..., :1])
+        
+        z = x[..., :d].view(*x.shape[:-1], -1, 2)
+        re, im = z[..., 0], z[..., 1]
+        phase = (re * re - im * im).mean(dim=-1, keepdim=True)
+        return phase
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # 1. /0 Projection
+        x_proj = self._projective_clamp(x)
 
-        """
+        # 2. Phase alignment
+        phase = self._phase_proxy(x_proj)
 
-        Forward pass for GPCL Attention. Replaces Softmax with SVD Projection.
+        # 3. EIT smoothing — "じわーっと波"
+        if self.zbar is None or self.zbar.shape != phase.shape:
+            self.zbar = phase
+        else:
+            self.zbar = (1.0 - self.lam) * self.zbar + self.lam * phase
 
-        
+        # 4. Soft R=0 Gating
+        gate = torch.sigmoid(self.zbar * self.strength)
 
-        Args:
+        # Final: features conditioned by R=0 field
+        return x_proj * gate
 
-            x: Input tensor [batch, seq, dim]
-
-        """
-
-        # 1. Normalize -> Project to hypersphere
-
-        x_norm = x / (x.norm(dim=-1, keepdim=True) + 1e-8)
-
-        
-
-        # 2. Calculate geometric similarity (cosine-like)
-
-        sim = torch.matmul(x_norm, x_norm.transpose(-2, -1))
-
-        
-
-        # 3. PSF Constraint Filter (Sever the noise completely)
-
-        mask = (sim > self.threshold).float()
-
-        sim_filtered = sim * mask
-
-        
-
-        # 4. Geometric Projection (The Core Breakthrough)
-
-        sim_proj = psf_projection(sim_filtered)
-
-        
-
-        # 5. Re-normalize without Softmax to maintain absolute structure
-
-        weights = sim_proj / (sim_proj.sum(dim=-1, keepdim=True) + 1e-8)
-
-        
-
-        # 6. Apply strictly constrained weights
-
-        out = torch.matmul(weights, x)
-
-        
-
-        return out
 
 # =========================================================
-
-# 🔷 Feed Forward Network (Standard)
-
+# GPCL Transformer Block
 # =========================================================
-
-class FeedForward(nn.Module):
-
-    def __init__(self, dim: int, hidden_dim: int):
-
-        super().__init__()
-
-        self.net = nn.Sequential(
-
-            nn.Linear(dim, hidden_dim),
-
-            nn.GELU(),
-
-            nn.Linear(hidden_dim, dim)
-
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-
-        return self.net(x)
-
-# =========================================================
-
-# 🔷 GPCL Transformer Block
-
-# =========================================================
-
 class GPCLBlock(nn.Module):
-
     def __init__(self, dim: int, hidden_dim: int):
-
         super().__init__()
-
-        
-
-        self.attn = GPCLAttention(dim)
-
-        self.ff = FeedForward(dim, hidden_dim)
-
-        
-
+        self.attn = R0_GPCLayer()                    # Geometric preconditioner
+        self.ff = nn.Sequential(
+            nn.Linear(dim, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, dim)
+        )
         self.norm1 = nn.LayerNorm(dim)
-
         self.norm2 = nn.LayerNorm(dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-
-        # PSF-based Attention with residual connection
-
+        # R=0 preconditioned attention + residual
         x = x + self.attn(self.norm1(x))
-
-        # Standard Feedforward with residual connection
-
+        # Standard feed-forward + residual
         x = x + self.ff(self.norm2(x))
-
         return x
 
-# =========================================================
-
-# 🔷 Full GPCL Transformer Model
 
 # =========================================================
-
+# Full GPCL Transformer
+# =========================================================
 class GPCLTransformer(nn.Module):
+    """
+    GPCL Transformer — Final Edition
 
-    def __init__(self, dim: int, depth: int, hidden_dim: int):
-
-        """
-
-        Initialize the GPCL Transformer.
-
-        
-
-        Args:
-
-            dim: Embedding dimension.
-
-            depth: Number of Transformer blocks.
-
-            hidden_dim: Hidden dimension for the FeedForward network.
-
-        """
-
+    A Transformer where every attention layer is geometrically constrained 
+    by R=0 (Zero Resistance / Superconductivity).
+    """
+    def __init__(self, dim: int = 512, depth: int = 6, hidden_dim: int = 2048):
         super().__init__()
-
-        
-
         self.layers = nn.ModuleList([
-
-            GPCLBlock(dim, hidden_dim) 
-
-            for _ in range(depth)
-
+            GPCLBlock(dim, hidden_dim) for _ in range(depth)
         ])
-
-        
-
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-
         for layer in self.layers:
-
             x = layer(x)
-
         return self.norm(x)
 
-# =========================================================
-
-# ✅ Execution / Test Block
 
 # =========================================================
-
+# Test / Demo
+# =========================================================
 if __name__ == "__main__":
+    print("=== GPCLTransformer — Final Edition ===\n")
 
-    # Initialize a lightweight prototype model
+    model = GPCLTransformer(dim=256, depth=4, hidden_dim=1024)
 
-    model = GPCLTransformer(
-
-        dim=64, 
-
-        depth=3, 
-
-        hidden_dim=128
-
-    )
-
-    
-
-    # Generate dummy tensor representing batched quantum structures
-
-    # [batch_size=2, sequence_length=10, feature_dim=64]
-
-    x = torch.randn(2, 10, 64)
-
-    
-
-    # Pass through the GPCL architecture
+    x = torch.randn(8, 32, 256)   # batch, seq, dim
 
     out = model(x)
 
-    
-
-    print("✅ GPCL Processing Complete.")
-
-    print(f"✅ Input Shape:  {x.shape}")
-
-    print(f"✅ Output Shape: {out.shape}")
-
+    print(f"Input shape : {x.shape}")
+    print(f"Output shape: {out.shape}")
+    print("✅ R=0 Geometric Constraint applied successfully.")
+    print("    The model now operates under Zero Resistance geometry.")
