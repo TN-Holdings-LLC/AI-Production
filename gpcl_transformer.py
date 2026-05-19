@@ -54,7 +54,7 @@ class R0_GPCLayer(nn.Module):
         # 2. Phase alignment
         phase = self._phase_proxy(x_proj)
 
-        # 3. EIT smoothing — "じわーっと波"
+        # 3. EIT smoothing — 
         if self.zbar is None or self.zbar.shape != phase.shape:
             self.zbar = phase
         else:
