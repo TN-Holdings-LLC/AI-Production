@@ -36,17 +36,12 @@ The resulting $z$-component acts as a universal manifold constraint.
 # GPCL Transformer: Geometric Projection Constraint Layer 🌌
 
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)
-
 ![Quantum Architecture](https://img.shields.io/badge/Architecture-NextGen_AI-blue)
-
 ![Status](https://img.shields.io/badge/Status-Prototype-success)
 
 ## 📌 Overview
-
 The **GPCL Transformer** is a next-generation neural network architecture that entirely eliminates the fundamental flaw of modern LLMs: *Hallucination via Probabilistic Approximation*. 
-
 By replacing the traditional `softmax` function in the Attention mechanism with a **Geometric Projection Constraint Layer (PSF Core)**, this model transitions from "guessing the most probable next token" to "deterministically snapping to physically and mathematically valid structures."
-
 It is specifically designed for zero-tolerance domains such as Quantum Circuit Compilation (ensuring absolute SU(4) unitarity), Mathematical Theorem Proving, and 3D Protein Folding.
 
 ## 💥 The Core Problem: The Illusion of Softmax
@@ -56,59 +51,37 @@ Traditional Transformers use `softmax` to calculate attention weights. However, 
 ## 🚀 The Solution: GPCL Attention
 
 GPCL (Geometric Projection Constraint Layer) replaces probabilistic averaging with **Geometric Determinism**. 
-
 1. **Threshold Filtering**: Geometrically distant noise is physically severed (`masking`).
-
 2. **SVD Projection**: The remaining attention matrix is forcefully projected onto the closest valid geometric manifold (e.g., unitary structure) using Singular Value Decomposition (SVD).
-
 3. **Zero Hallucination**: The network is physically restricted from generating mathematically impossible structures.
 
 ### Architecture Comparison
-
 | Feature | Traditional Transformer | GPCL Transformer |
-
 | :--- | :--- | :--- |
-
 | **Attention Core** | `Softmax` (Probabilistic) | **SVD Projection** (Deterministic) |
-
 | **Noise Handling** | Weighted Average (Blurs noise) | **Geometric Cut-off** (Eliminates noise) |
-
 | **Output State** | Approximate / Plausible | **Structurally Guaranteed** |
-
 | **Primary Use Case** | Natural Language Generation | **Quantum Compiling / Math / Physics** |
+
+[gpcl_transformer.py](./gpcl_transformer.py)
 
 ## 🛠️ Quick Start
 
 ### Installation
-
 Ensure you have PyTorch installed:
 
 ```bash
-
 pip install torch numpy
-
 ```
 Basic Usage
-
 The GPCLTransformer is designed as a drop-in replacement for standard sequence models.
-
 Python
-
 import torch
-
 from gpcl_transformer import GPCLTransformer
 
 #### Initialize the model
 
-model = GPCLTransformer(
-
-    dim=64, 
-
-    depth=3, 
-
-    hidden_dim=128
-
-)
+model = GPCLTransformer(dim=64, depth=3, hidden_dim=128)
 
 #### Dummy sequence input (e.g., batched quantum gate parameters)
 
@@ -119,15 +92,12 @@ x = torch.randn(2, 10, 64)
 #### Forward pass: Guaranteed valid structure output
 
 output = model(x)
-
 print(output.shape) 
 
 🧠 Future Roadmap
 
 [ ] Integration with Qiskit for direct SU(4) quantum circuit compilation benchmarking.
-
 [ ] Scalability testing on multi-GPU environments for $O(1)$ compile time on $10^3$ qubits.
-
 [ ] Academic paper formalization.
 
 ![5](./5.png)
