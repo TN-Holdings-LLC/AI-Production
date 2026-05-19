@@ -98,7 +98,7 @@ import torch
 
 from gpcl_transformer import GPCLTransformer
 
-# Initialize the model
+#### Initialize the model
 
 model = GPCLTransformer(
 
@@ -110,13 +110,13 @@ model = GPCLTransformer(
 
 )
 
-# Dummy sequence input (e.g., batched quantum gate parameters)
+#### Dummy sequence input (e.g., batched quantum gate parameters)
 
-# [batch_size, sequence_length, embedding_dim]
+#### [batch_size, sequence_length, embedding_dim]
 
 x = torch.randn(2, 10, 64)
 
-# Forward pass: Guaranteed valid structure output
+#### Forward pass: Guaranteed valid structure output
 
 output = model(x)
 
